@@ -27,11 +27,11 @@ async function response() {
   const data = await fetchUpcomingMovie();
   const movieInfo = data.results;
   const genres = await fetchGenresMovie();
-  await generateGenres(movieInfo, genres);
+  generateGenres(movieInfo, genres);
   containerMovie.innerHTML = createMarkupUpcoming(movieInfo, genres);
 }
 
-async function generateGenres(movieInfo, genres) {
+function generateGenres(movieInfo, genres) {
   const genresName = [];
   movieInfo.forEach(movie => {
     const genreNames = [];
@@ -57,6 +57,11 @@ function createMarkupUpcoming(movieInfo, genres) {
     genre_ids,
     overview,
   } = movieInfo[randomIndex];
+
+  const poster = backdrop_path
+    ? `https://image.tmdb.org/t/p/original/${backdrop_path}`
+    : console.log('not found');
+
   const roundedPopularity = popularity.toFixed(1);
 
   const releaseDay = addLeadingZero(
@@ -75,7 +80,7 @@ function createMarkupUpcoming(movieInfo, genres) {
   });
 
   return `
-    <img class="upcoming-image" src="https://image.tmdb.org/t/p/original/${backdrop_path}" alt="${original_title}">
+    <img class="upcoming-image" src="${poster}" alt="${original_title}">
     <h3 class="upcoming-movie-title">${original_title}</h3>
     <ul class="upcoming-list-details list">
       <li class="upcoming-list-details-item">
@@ -98,7 +103,7 @@ function createMarkupUpcoming(movieInfo, genres) {
     <h4 class="upcoming-about">ABOUT</h4>
     <p class="upcoming-about-text">${overview}</p>
     <button class="upcoming-btn-add" type="button">Add to my library</button>
-    <button class="upcoming-btn-remove" type="button">Remove from my library</button>
+    <button class="upcoming-btn-remove" hidden type="button">Remove from my library</button>
   `;
 }
 
@@ -106,4 +111,32 @@ response();
 
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
+}
+
+// BUTTON//
+
+containerMovie.addEventListener('click', function (event) {
+  event.preventDefault();
+  const target = event.target;
+  if (target.classList.contains('upcoming-btn-add')) {
+    addToLocalStorage(event);
+  } else if (target.classList.contains('upcoming-btn-remove')) {
+    removeFromLocalStorage(event);
+  }
+});
+
+function addToLocalStorage(e) {
+  const addToLibraryBtn = e.target;
+  addToLibraryBtn.style.display = 'none';
+  const removeFromLibraryBtn = addToLibraryBtn.parentNode.querySelector(
+    '.upcoming-btn-remove'
+  );
+  removeFromLibraryBtn.style.display = 'block';
+}
+function removeFromLocalStorage(e) {
+  removeFromLibraryBtn = e.target;
+  removeFromLibraryBtn.style.display = 'none';
+  const addToLibraryBtn =
+    removeFromLibraryBtn.parentNode.querySelector('.upcoming-btn-add');
+  addToLibraryBtn.style.display = 'block';
 }
